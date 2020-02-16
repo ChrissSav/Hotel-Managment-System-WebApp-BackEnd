@@ -3,6 +3,8 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser')
 let error_handling = require('./Status/error_handling');
 let success_handling = require('./Status/success_handling');
+var cors = require('cors')
+
 //CreateConection
 
 const db =
@@ -28,6 +30,7 @@ db.connect((error) => {
 
 
 const app = express();
+app.use(cors())
 
 app.listen('5023', () => {
     console.log("on port 5023")
@@ -37,7 +40,7 @@ app.get('', (req,res) => {
     res.send("Καλώς ήρθατε στο Api του Hotel Managment System");
 });
 
-
+  
 
 //GlobalFunctons----------------------------------
 function GetAllFromTable(table_name){
