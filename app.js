@@ -31,7 +31,8 @@ db.connect((error) => {
 
 const app = express();
 app.use(cors())
-
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.listen('5023', () => {
     console.log("on port 5023")
 });
@@ -84,7 +85,7 @@ app.delete("/employee", (req,res) => {
 
 app.get("/employee/:id",async (req,res) => {
     employee_id = req.params.id;
-    console.log("employee_id",employee_id)
+  //  console.log("employee_id",employee_id)
     if (employee_id =="!" || employee_id ==="!"){
        
         result = await GetAllFromTable("employees");
@@ -225,13 +226,56 @@ function RegisterReservaton(date,rec_id,costumer_id,room_id,arrival,departure,nu
 
 //Prices
 app.put("/prices", (req,res) => {
-    res.send("Επεξεργασια τιμών");
+    updated_prices = req.body.prices
+    if(UpdatePrices(updated_prices)==true){
+        res.send(success_handling(""));
+    }else{
+        res.send(error_handling(""));
+    }
+    
+});
+
+app.get("/prices",async (req,res) => {
+    result = await GetAllFromTable("prices")
+    if(result==false){
+        res.send(error_handling("error"))
+    }else{
+        res.send(result[0])
+    }
 });
 
 
 
-
-
+function UpdatePrices(prices){
+    return new Promise((resolve,reject)=>{
+        air_condition= parseInt(prices.air_condition)
+        pool=prices.pool
+        wifi= prices.wifi
+        only_breakfast= prices.only_breakfast
+        half_board= prices.half_board
+        full_diet= prices.full_diet
+        parking= prices.parking
+        normal= prices.normal
+        family= prices.family
+        price_of_bed= prices.price_of_bed
+        tax= parseInt(prices.tax)
+        //console.log(air_condition,pool,wifi ,only_breakfast,half_board, full_diet,
+      //      parking,normal,family,price_of_bed,tax)
+        sql = "update prices set air_condition=?,pool=?,wifi=? ,only_breakfast=?,half_board=?"+
+        " ,full_diet=?,parking=?,normal=?,family=?,price_of_bed=?,tax=? where id =1";
+        db.query(sql,[air_condition,pool,wifi ,only_breakfast,half_board, full_diet,
+            parking,normal,family,price_of_bed,tax],(err, result) => {
+            if (err){
+                console.log("UpdatePrices");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
 //Rooms
 app.post("/room", (req,res) => {
     res.send("Καταχωρηση δωματιου");
@@ -247,7 +291,7 @@ app.delete("/room", (req,res) => {
 
 app.get("/room/:id", async (req,res) => {
     room_id = req.params.id;
-    console.log("room_id",room_id)
+    //console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
        
         result = await GetAllFromTable("rooms");
