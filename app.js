@@ -82,15 +82,41 @@ app.delete("/employee", (req,res) => {
 
 
 
-app.get("/employees",async (req,res) => {
-    employees = await GetAllFromTable("employees");
-    if (employees==false){
-        res.send(error_handling(""));
+app.get("/employee/:id",async (req,res) => {
+    employee_id = req.params.id;
+    console.log("employee_id",employee_id)
+    if (employee_id =="!" || employee_id ==="!"){
+       
+        result = await GetAllFromTable("employees");
     }else{
-        res.send(employees);
+        result = await GetEmployeeById(employee_id);
     }
+    res.send(result);
     
 });
+
+function GetEmployeeById(employee_id){
+    return new Promise((resolve,reject)=>{
+        sql = "";
+        if (parseFloat(employee_id)==employee_id){
+            sql = " select * from employees where afm  like '%"+employee_id+"%'"
+        }else{
+            sql = " select * from employees where last_name  like '%"+employee_id+"%'"
+        }
+        db.query(sql,(err, result) => {
+            if (err){
+                console.log("GetEmployeeById");
+                console.log(err);
+                resolve ([]);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
+
+
 
 function RegisterEmpolyee(first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password){
     return new Promise((resolve,reject)=>{
@@ -116,7 +142,7 @@ app.post("/costumer", (req,res) => {
 });
 
 app.put("/costumer", (req,res) => {
-    res.send("Καταχωρηση πελάτη");
+    res.send("Επεξεργασια πελάτη");
 });
 
 app.delete("/costumer", (req,res) => {
@@ -124,15 +150,21 @@ app.delete("/costumer", (req,res) => {
 });
 
 
-app.get("/costumers",async (req,res) => {
-    employees = await GetAllFromTable("costumers");
-    if (employees==false){
-        res.send("error");
+app.get("/costumer/:id",async (req,res) => {
+    costumer_id = req.params.id;
+    console.log("costumer_id",costumer_id)
+    if (costumer_id ==0 || costumer_id =="0"){
+       
+        result = await GetAllFromTable("costumers");
     }else{
-        res.send(employees);
+        result = await GetRoomById(room_id);
     }
+    res.send(result);
     
 });
+
+
+
 
 
 
@@ -160,7 +192,7 @@ app.post("/reservation", (req,res) => {
 });
 
 app.put("/reservation", (req,res) => {
-    res.send("Καταχωρηση κρατησης");
+    res.send("Επεξεργασια κρατησης");
 });
 
 app.delete("/reservation", (req,res) => {
@@ -195,3 +227,64 @@ function RegisterReservaton(date,rec_id,costumer_id,room_id,arrival,departure,nu
 app.put("/prices", (req,res) => {
     res.send("Επεξεργασια τιμών");
 });
+
+
+
+
+
+//Rooms
+app.post("/room", (req,res) => {
+    res.send("Καταχωρηση δωματιου");
+});
+
+app.put("/room", (req,res) => {
+    res.send("Επεξεργασια δωματιου");
+});
+
+app.delete("/room", (req,res) => {
+    res.send("Διαγραφη δωματιου");
+});
+
+app.get("/room/:id", async (req,res) => {
+    room_id = req.params.id;
+    console.log("room_id",room_id)
+    if (room_id ==0 || room_id =="0"){
+       
+        result = await GetAllFromTable("rooms");
+    }else{
+        result = await GetRoomById(room_id);
+    }
+    res.send(result);
+    
+   
+});
+
+
+
+app.get("/rooms", async (req,res) => {
+    rooms = await GetAllFromTable("rooms");
+    if (rooms==false){
+        res.send("error");
+    }else{
+        res.send(rooms);
+    }
+});
+
+
+function GetRoomById(room_id){
+    return new Promise((resolve,reject)=>{
+        sql = "select * from rooms where id = ?";
+        db.query(sql,[room_id],(err, result) => {
+            if (err){
+                console.log("GetRoomById");
+                console.log(err);
+                resolve ([]);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
+
+
