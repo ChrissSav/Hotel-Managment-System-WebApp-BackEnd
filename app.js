@@ -278,16 +278,25 @@ function UpdatePrices(prices){
 }
 //Rooms
 app.post("/room", (req,res) => {
-    res.send("Καταχωρηση δωματιου");
+    create_room = req.body.room
+    if(CreateRoom(create_room)==true){
+         res.send(success_handling(""));
+    }else{
+         res.send(error_handling(""));
+    }
+    console.log("Καταχωρηση δωματιου")
+    console.log(create_room)
 });
 
 app.put("/room", (req,res) => {
+    
     res.send("Επεξεργασια δωματιου");
 });
 
 app.delete("/room", (req,res) => {
     res.send("Διαγραφη δωματιου");
 });
+
 
 app.get("/room/:id", async (req,res) => {
     room_id = req.params.id;
@@ -332,3 +341,26 @@ function GetRoomById(room_id){
 }
 
 
+
+
+function CreateRoom(body){
+    return new Promise((resolve,reject)=>{
+        type = body.type;
+        num_of_beds= body.num_of_beds;
+        air_condition= body.air_condition;
+        pool= body.pool;
+        wifi= body.wifi;
+        price= body.price;    
+        sql = "insert into rooms (type,num_of_beds,air_condition,pool,wifi,price) values (?,2,?,?,?,?);"
+        db.query(sql,[type,num_of_beds,air_condition,pool,wifi,price],(err, result) => {
+            if (err){
+                console.log("CreateRoom");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
