@@ -33,6 +33,10 @@ const app = express();
 app.use(cors())
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+
+
+
+
 app.listen('5023', () => {
     console.log("on port 5023")
 });
@@ -277,15 +281,16 @@ function UpdatePrices(prices){
     });
 }
 //Rooms
-app.post("/room", (req,res) => {
+app.post("/room", async (req,res) => {
     create_room = req.body.room
-    if(CreateRoom(create_room)==true){
-         res.send(success_handling(""));
-    }else{
-         res.send(error_handling(""));
-    }
-    console.log("Καταχωρηση δωματιου")
-    console.log(create_room)
+    //console.log("Καταχωρηση δωματιου")
+    //console.log(create_room)
+    // if(await CreateRoom(create_room)){
+    //      res.send(success_handling(""));
+    // }else{
+    //      res.send(error_handling(""));
+    // }
+    res.send(error_handling(""));
 });
 
 app.put("/room", (req,res) => {
@@ -323,6 +328,11 @@ app.get("/rooms", async (req,res) => {
     }
 });
 
+app.get("/room_max_id", async (req,res) => {
+    max = await GetRoomMaxId();
+    res.send(success_handling(max+1));
+
+});
 
 function GetRoomById(room_id){
     return new Promise((resolve,reject)=>{
@@ -340,7 +350,21 @@ function GetRoomById(room_id){
     });
 }
 
-
+function GetRoomMaxId(){
+    return new Promise((resolve,reject)=>{
+        sql = "select MAX(id) as id from rooms ";
+        db.query(sql,(err, result) => {
+            if (err){
+                console.log("GetRoomMaxId");
+                console.log(err);
+                resolve (0);
+            }
+            else{
+                resolve (result[0].id);
+            }
+        })
+    });
+}
 
 
 function CreateRoom(body){
@@ -351,7 +375,7 @@ function CreateRoom(body){
         pool= body.pool;
         wifi= body.wifi;
         price= body.price;    
-        sql = "insert into rooms (type,num_of_beds,air_condition,pool,wifi,price) values (?,2,?,?,?,?);"
+        sql = "insert into rooms (type,num_of_beds,air_condition,pool,wifi,price) values (?,?,?,?,?,?);"
         db.query(sql,[type,num_of_beds,air_condition,pool,wifi,price],(err, result) => {
             if (err){
                 console.log("CreateRoom");
