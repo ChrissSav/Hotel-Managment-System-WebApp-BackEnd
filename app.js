@@ -72,9 +72,17 @@ function GetAllFromTable(table_name){
 //GlobalFunctons----End---------------------------
 
 ///Empolyees
-app.post("/employee", (req,res) => {
-    res.send("Καταχωρηση χρηστη");
+app.post("/employee",async (req,res) => {
+    employee  =req.body.data ;
+    console.log(employee)
+    if(await RegisterEmpolyee(employee)==true){
+        res.send(success_handling("mpompa"))
+    }else{
+        res.send(error_handling("error"));
+
+    }
 });
+
 
 app.put("/employee", (req,res) => {
     res.send("Καταχωρηση χρηστη");
@@ -83,6 +91,7 @@ app.put("/employee", (req,res) => {
 app.delete("/employee", (req,res) => {
     res.send("Διαγραφη χρηστη");
 });
+
 
 
 
@@ -123,8 +132,21 @@ function GetEmployeeById(employee_id){
 
 
 
-function RegisterEmpolyee(first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password){
+
+function RegisterEmpolyee(employee){
     return new Promise((resolve,reject)=>{
+        first_name = employee.first_name;
+        last_name= employee.last_name;
+        brithday= employee.brithday;
+        sex= employee.sex;
+        address= employee.address;
+        city= employee.city;
+        phone= employee.phone;
+        amka= employee.amka;
+        adt= employee.adt;
+        afm= employee.afm;
+        username= employee.username;
+        password= employee.password;
         sql = "INSERT INTO employees (first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password) " +
         "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
         db.query(sql,[first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password],(err, result) => {
@@ -283,13 +305,13 @@ function UpdatePrices(prices){
 //Rooms
 app.post("/room", async (req,res) => {
     create_room = req.body.room
-    //console.log("Καταχωρηση δωματιου")
-    //console.log(create_room)
-    // if(await CreateRoom(create_room)){
-    //      res.send(success_handling(""));
-    // }else{
-    //      res.send(error_handling(""));
-    // }
+    console.log("Καταχωρηση δωματιου")
+    console.log(create_room)
+    if(await CreateRoom(create_room)){
+          res.send(success_handling(""));
+    }else{
+         res.send(error_handling(""));
+    }
     res.send(error_handling(""));
 });
 
