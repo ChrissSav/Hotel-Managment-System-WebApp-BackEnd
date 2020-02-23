@@ -64,6 +64,11 @@ function GetAllFromTable(table_name){
     });
 }
 
+function ChangeFromat(date){
+    var d  = date.split("-");
+    var new_date = d[2]+"-"+d[1]+"-"+d[0]
+    return  (new_date);
+}
 
 
 
@@ -137,7 +142,7 @@ function RegisterEmpolyee(employee){
     return new Promise((resolve,reject)=>{
         first_name = employee.first_name;
         last_name= employee.last_name;
-        brithday= employee.brithday;
+        birthday= ChangeFromat(employee.birthday);
         sex= employee.sex;
         address= employee.address;
         city= employee.city;
@@ -147,9 +152,9 @@ function RegisterEmpolyee(employee){
         afm= employee.afm;
         username= employee.username;
         password= employee.password;
-        sql = "INSERT INTO employees (first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password) " +
+        sql = "INSERT INTO employees (first_name,last_name,birthday,sex,address,city,phone,amka,adt,afm,username,password) " +
         "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
-        db.query(sql,[first_name,last_name,brithday,sex,address,city,phone,amka,adt,afm,username,password],(err, result) => {
+        db.query(sql,[first_name,last_name,birthday,sex,address,city,phone,amka,adt,afm,username,password],(err, result) => {
             if (err){
                 console.log("RegisterEmpolyee");
                 console.log(err);
