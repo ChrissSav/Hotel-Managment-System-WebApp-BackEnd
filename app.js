@@ -169,8 +169,15 @@ function RegisterEmpolyee(employee){
 
 
 ///Costumers
-app.post("/costumer", (req,res) => {
-    res.send("Καταχωρηση πελάτη");
+app.post("/costumer", async (req,res) => {
+    costumer  =req.body.data ;
+    //console.log(costumer)
+    if(await RegisterCostumer(costumer)==true){
+        res.send(success_handling("mpompa"))
+    }else{
+        res.send(error_handling("error"));
+
+    }
 });
 
 app.put("/costumer", (req,res) => {
@@ -186,7 +193,6 @@ app.get("/costumer/:id",async (req,res) => {
     costumer_id = req.params.id;
     console.log("costumer_id",costumer_id)
     if (costumer_id ==0 || costumer_id =="0"){
-       
         result = await GetAllFromTable("costumers");
     }else{
         result = await GetRoomById(room_id);
@@ -200,8 +206,14 @@ app.get("/costumer/:id",async (req,res) => {
 
 
 
-function RegisterCostumer(last_name,first_name,birthday,sex,phone,adt){
+function RegisterCostumer(costumer){
     return new Promise((resolve,reject)=>{
+        last_name = costumer.last_name;
+        first_name = costumer.first_name;
+        birthday = costumer.birthday;
+        sex = costumer.sex;
+        phone = costumer.phone;
+        adt =  costumer.adt;
         sql = "INSERT INTO costumers (last_name,first_name,birthday,sex,phone,adt) " +
         "VALUES (?,?,?,?,?,?);"
         db.query(sql,[last_name,first_name,birthday,sex,phone,adt],(err, result) => {
@@ -219,8 +231,15 @@ function RegisterCostumer(last_name,first_name,birthday,sex,phone,adt){
 
 
 ///Reservation
-app.post("/reservation", (req,res) => {
-    res.send("Καταχωρηση κρατησης");
+app.post("/reservation", async (req,res) => {
+    reservation  =req.body.data ;
+    //console.log(costumer)
+    if(await RegisterReservaton(reservation)==true){
+        res.send(success_handling("mpompa"))
+    }else{
+        res.send(error_handling("error"));
+
+    }
 });
 
 app.put("/reservation", (req,res) => {
@@ -234,13 +253,23 @@ app.delete("/reservation", (req,res) => {
 
 
 
-function RegisterReservaton(date,rec_id,costumer_id,room_id,arrival,departure,num_fo_abults,
-    num_of_minors,parking_space,diet,cost){
+function RegisterReservaton(reservation){
+
     return new Promise((resolve,reject)=>{
-        sql = "INSERT INTO costumers (date,rec_id,costumer_id,room_id,arrival,departure,num_fo_abults,"+
-            "num_of_minors,parking_space,diet,cost) " +
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?);"
-        db.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_fo_abults,
+        date = reservation.date;
+        rec_id = reservation.rec_id;
+        costumer_id = reservation.costumer_id;
+        room_id = reservation.room_id;
+        arrival = reservation.arrival;
+        departure = reservation.departure;
+        num_of_abults = reservation.num_of_abults;
+        num_of_minors = reservation.num_of_minors;
+        parking_space = reservation.parking_space;
+        diet = reservation.diet;
+        cost = reservation.cost;
+        sql = "INSERT INTO costumers (date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,"+
+            "num_of_minors,parking_space,diet,cost) VALUES (?,?,?,?,?,?,?,?,?,?,?);"
+        db.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,
             num_of_minors,parking_space,diet,cost],(err, result) => {
             if (err){
                 console.log("RegisterCostumer");
