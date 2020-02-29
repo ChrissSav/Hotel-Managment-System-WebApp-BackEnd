@@ -366,7 +366,7 @@ app.delete("/room", (req,res) => {
 
 app.get("/room/:id", async (req,res) => {
     room_id = req.params.id;
-    //console.log("room_id",room_id)
+    console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
        
         result = await GetAllFromTable("rooms");
@@ -462,7 +462,8 @@ function UpdateRoom(room){
         id = room.id  
         sql = "UPDATE  rooms set type = ?, num_of_beds = ?, air_condition = ?, pool = ?, wifi = ?, price = ? where id = ?"
         connDB.query(sql,[type,num_of_beds,air_condition,pool,wifi,price,id],(err, result) => {
-            if (err){
+            console.log(result.affectedRows);
+            if (err || result.affectedRows ==0){
                 console.log("UpdateRoom");
                 console.log(err);
                 resolve (false);
