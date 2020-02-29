@@ -346,12 +346,17 @@ app.post("/room", async (req,res) => {
     }else{
          res.send(error_handling(""));
     }
-    res.send(error_handling(""));
 });
 
-app.put("/room", (req,res) => {
-    
-    res.send("Επεξεργασια δωματιου");
+app.put("/room",async (req,res) => {
+    current_room = req.body.room
+    console.log("Επεξεργασια δωματιου")
+    console.log(current_room)
+    if(await UpdateRoom(current_room)){
+          res.send(success_handling(""));
+    }else{
+         res.send(error_handling(""));
+    }
 });
 
 app.delete("/room", (req,res) => {
@@ -446,7 +451,28 @@ function CreateRoom(body){
 }
 
 
-
+function UpdateRoom(room){
+    return new Promise((resolve,reject)=>{
+        type = room.type;
+        num_of_beds= room.num_of_beds;
+        air_condition= room.air_condition;
+        pool= room.pool;
+        wifi= room.wifi;
+        price= room.price;  
+        id = room.id  
+        sql = "UPDATE  rooms set type = ?, num_of_beds = ?, air_condition = ?, pool = ?, wifi = ?, price = ? where id = ?"
+        connDB.query(sql,[type,num_of_beds,air_condition,pool,wifi,price,id],(err, result) => {
+            if (err){
+                console.log("UpdateRoom");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
 
 function handle_mysql_disconnect(_connDB){ 
 _connDB.on('error', function(error){
