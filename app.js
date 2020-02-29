@@ -7,7 +7,7 @@ var cors = require('cors')
 
 //CreateConection
 
-const db =
+var connDB =
  mysql.createConnection({
     host: 'localhost',
     user: 'user',
@@ -17,11 +17,11 @@ const db =
 });
 
 //Connection
-db.connect((error) => {
+connDB.connect((error) => {
     if(error){
-        console.log("db.connect((error)"); 
+        console.log("connDB.connect((error)"); 
         console.log(error);    
-        db.connect();    
+        connDB.connect();    
     }
     else{
         console.log('Mysql connected');
@@ -51,7 +51,7 @@ app.get('', (req,res) => {
 function GetAllFromTable(table_name){
     return new Promise((resolve,reject)=>{
         sql = "SELECT * FROM "+table_name
-        db.query(sql,(err, result) => {
+        connDB.query(sql,(err, result) => {
             if (err){
                 console.log("GetAllFromTable");
                 console.log(err);
@@ -122,7 +122,7 @@ function GetEmployeeById(employee_id){
         }else{
             sql = " select * from employees where last_name  like '%"+employee_id+"%'"
         }
-        db.query(sql,(err, result) => {
+        connDB.query(sql,(err, result) => {
             if (err){
                 console.log("GetEmployeeById");
                 console.log(err);
@@ -154,7 +154,7 @@ function RegisterEmpolyee(employee){
         password= employee.password;
         sql = "INSERT INTO employees (first_name,last_name,birthday,sex,address,city,phone,amka,adt,afm,username,password) " +
         "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);"
-        db.query(sql,[first_name,last_name,birthday,sex,address,city,phone,amka,adt,afm,username,password],(err, result) => {
+        connDB.query(sql,[first_name,last_name,birthday,sex,address,city,phone,amka,adt,afm,username,password],(err, result) => {
             if (err){
                 console.log("RegisterEmpolyee");
                 console.log(err);
@@ -216,7 +216,7 @@ function RegisterCostumer(costumer){
         adt =  costumer.adt;
         sql = "INSERT INTO costumers (last_name,first_name,birthday,sex,phone,adt) " +
         "VALUES (?,?,?,?,?,?);"
-        db.query(sql,[last_name,first_name,birthday,sex,phone,adt],(err, result) => {
+        connDB.query(sql,[last_name,first_name,birthday,sex,phone,adt],(err, result) => {
             if (err){
                 console.log("RegisterCostumer");
                 console.log(err);
@@ -269,7 +269,7 @@ function RegisterReservaton(reservation){
         cost = reservation.cost;
         sql = "INSERT INTO costumers (date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,"+
             "num_of_minors,parking_space,diet,cost) VALUES (?,?,?,?,?,?,?,?,?,?,?);"
-        db.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,
+        connDB.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,
             num_of_minors,parking_space,diet,cost],(err, result) => {
             if (err){
                 console.log("RegisterCostumer");
@@ -323,7 +323,7 @@ function UpdatePrices(prices){
       //      parking,normal,family,price_of_bed,tax)
         sql = "update prices set air_condition=?,pool=?,wifi=? ,only_breakfast=?,half_board=?"+
         " ,full_diet=?,parking=?,normal=?,family=?,price_of_bed=?,tax=? where id =1";
-        db.query(sql,[air_condition,pool,wifi ,only_breakfast,half_board, full_diet,
+        connDB.query(sql,[air_condition,pool,wifi ,only_breakfast,half_board, full_diet,
             parking,normal,family,price_of_bed,tax],(err, result) => {
             if (err){
                 console.log("UpdatePrices");
@@ -393,7 +393,7 @@ app.get("/room_max_id", async (req,res) => {
 function GetRoomById(room_id){
     return new Promise((resolve,reject)=>{
         sql = "select * from rooms where id = ?";
-        db.query(sql,[room_id],(err, result) => {
+        connDB.query(sql,[room_id],(err, result) => {
             if (err){
                 console.log("GetRoomById");
                 console.log(err);
@@ -409,7 +409,7 @@ function GetRoomById(room_id){
 function GetRoomMaxId(){
     return new Promise((resolve,reject)=>{
         sql = "select MAX(id) as id from rooms ";
-        db.query(sql,(err, result) => {
+        connDB.query(sql,(err, result) => {
             if (err){
                 console.log("GetRoomMaxId");
                 console.log(err);
@@ -432,7 +432,7 @@ function CreateRoom(body){
         wifi= body.wifi;
         price= body.price;    
         sql = "insert into rooms (type,num_of_beds,air_condition,pool,wifi,price) values (?,?,?,?,?,?);"
-        db.query(sql,[type,num_of_beds,air_condition,pool,wifi,price],(err, result) => {
+        connDB.query(sql,[type,num_of_beds,air_condition,pool,wifi,price],(err, result) => {
             if (err){
                 console.log("CreateRoom");
                 console.log(err);
@@ -444,3 +444,28 @@ function CreateRoom(body){
         })
     });
 }
+
+
+
+
+function handle_mysql_disconnect(_connDB){ 
+_connDB.on('error', function(error){
+     if(!error.fatal)  return;
+     if(error.code !== 'PROTOCOL_CONNECTION_LOST')  throw error;
+
+     process_log.warn("re-connecting with mysql server!");
+
+     connDB = mysql.createConnection({
+        host: 'localhost',
+        user: 'user',
+        password: 'user1234',
+        database: 'hotel_database',
+        insecureAuth : true
+    });
+
+     handle_mysql_disconnect(connDB);
+     connDB.connect();
+ });
+}
+
+handle_mysql_disconnect(connDB);
