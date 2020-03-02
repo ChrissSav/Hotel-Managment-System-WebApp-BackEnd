@@ -66,7 +66,7 @@ function GetAllFromTable(table_name){
 
 function ChangeFromat(date){
     var d  = date.split("-");
-    var new_date = d[2]+"-"+d[1]+"-"+d[0]
+    var new_date = d[2]+"/"+d[1]+"/"+d[0]
     return  (new_date);
 }
 
@@ -89,8 +89,18 @@ app.post("/employee",async (req,res) => {
 });
 
 
-app.put("/employee", (req,res) => {
-    res.send("Καταχωρηση χρηστη");
+app.put("/employee",async (req,res) => {
+    //console.log(req.body.data)
+    current_employee = req.body.data
+    //console.log(current_employee.birthday,ChangeFromat(current_employee.birthday))
+
+    //console.log("Επεξεργασια employee")
+   // console.log(current_room)
+    if(await UpdateEmployee(current_employee)){
+          res.send(success_handling(""));
+    }else{
+         res.send(error_handling(""));
+    }
 });
 
 app.delete("/employee", (req,res) => {
@@ -167,6 +177,38 @@ function RegisterEmpolyee(employee){
     });
 }
 
+
+function UpdateEmployee(employee){
+    return new Promise((resolve,reject)=>{
+        id = employee.id;
+        first_name=  employee.first_name;
+        last_name=  employee.last_name;
+        birthday=  ChangeFromat(employee.birthday);
+        sex=  employee.sex;
+        address=  employee.address;
+        city=  employee.city;
+        phone=  employee.phone;
+        amka=  employee.amka;
+        adt=  employee.adt;
+        afm=  employee.afm;
+        username= employee.username;
+        password=  employee.password ;
+        sql = "UPDATE  employees set first_name = ?, last_name = ?, birthday = ?, sex = ?, address = ?, city = ?,phone =?"+
+        ",amka =?,adt =?,afm =?,username =?,password=?   where id = ?"
+        connDB.query(sql,[first_name , last_name , birthday , sex , address , city ,phone,
+            amka ,adt ,afm,username ,password, id],(err, result) => {
+           // console.log(result.affectedRows);
+            if (err || result.affectedRows == 0){
+                console.log("UpdateEmployee");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
 
 ///Costumers
 app.post("/costumer", async (req,res) => {
@@ -351,7 +393,7 @@ app.post("/room", async (req,res) => {
 app.put("/room",async (req,res) => {
     current_room = req.body.room
     console.log("Επεξεργασια δωματιου")
-    console.log(current_room)
+   // console.log(current_room)
     if(await UpdateRoom(current_room)){
           res.send(success_handling(""));
     }else{
@@ -366,7 +408,7 @@ app.delete("/room", (req,res) => {
 
 app.get("/room/:id", async (req,res) => {
     room_id = req.params.id;
-    console.log("room_id",room_id)
+    //console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
        
         result = await GetAllFromTable("rooms");
@@ -462,7 +504,7 @@ function UpdateRoom(room){
         id = room.id  
         sql = "UPDATE  rooms set type = ?, num_of_beds = ?, air_condition = ?, pool = ?, wifi = ?, price = ? where id = ?"
         connDB.query(sql,[type,num_of_beds,air_condition,pool,wifi,price,id],(err, result) => {
-            console.log(result.affectedRows);
+           // console.log(result.affectedRows);
             if (err || result.affectedRows ==0){
                 console.log("UpdateRoom");
                 console.log(err);
