@@ -233,11 +233,11 @@ app.delete("/costumer", (req,res) => {
 
 app.get("/costumer/:id",async (req,res) => {
     costumer_id = req.params.id;
-    console.log("costumer_id",costumer_id)
-    if (costumer_id ==0 || costumer_id =="0"){
+   // console.log("costumer_id",costumer_id)
+    if (costumer_id =="!"){
         result = await GetAllFromTable("costumers");
     }else{
-        result = await GetRoomById(room_id);
+        result = await GetCostumerById(costumer_id);
     }
     res.send(result);
     
@@ -271,6 +271,28 @@ function RegisterCostumer(costumer){
     });
 }
 
+
+
+function GetCostumerById(costumer_id){
+    return new Promise((resolve,reject)=>{
+        sql = "";
+        if (parseFloat(costumer_id)==costumer_id){
+            sql = " select * from costumers where phone  like '%"+costumer_id+"%'"
+        }else{
+            sql = " select * from costumers where last_name  like '%"+costumer_id+"%'"
+        }
+        connDB.query(sql,(err, result) => {
+            if (err){
+                console.log("GetCostumerById");
+                console.log(err);
+                resolve ([]);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 ///Reservation
 app.post("/reservation", async (req,res) => {
