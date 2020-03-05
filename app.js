@@ -244,7 +244,18 @@ app.get("/costumer/:id",async (req,res) => {
 });
 
 
-
+app.get("/costumer_auth/:id",async (req,res) => {
+    costumer_id = req.params.id;
+   // console.log("costumer_id",costumer_id)
+    result = await GetCostumerById(costumer_id);
+    if(result!=false){
+        res.send(success_handling(result));
+    }else{
+        res.send(error_handling("jiorg"));
+    }
+    
+    
+});
 
 
 
