@@ -3,7 +3,11 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser')
 let error_handling = require('./Status/error_handling');
 let success_handling = require('./Status/success_handling');
-var cors = require('cors')
+var cors = require('cors');
+const TOKEN_KEY ="UOM";
+const verify = require('./verifyToken');
+const jwt = require('jsonwebtoken');
+//const jwtBlacklist = require('jwt-blacklist')(jwt);
 
 //CreateConection
 
@@ -72,9 +76,76 @@ function ChangeFromat(date){
 
 
 
-
-
 //GlobalFunctons----End---------------------------
+//tokens
+function CheckToken(token){
+    return new Promise((resolve,reject)=>{
+        sql = "SELECT * FROM refress_tokens where token = '"+token+"'";
+        connDB.query(sql,(err, result) => {
+            if (err || result.legth<1){
+                console.log("CheckToken");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+function AddToken(token){
+    return new Promise((resolve,reject)=>{
+        sql = "insert into refress_tokens values(?)";
+        connDB.query(sql,[token],(err, result) => {
+            if (err){
+                console.log("AddToken");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+
+//login
+
+///
+app.post("/login/employee",async (req,res) => {
+    const employee =req.body ;
+    console.log(employee)
+    ressu = await CheckLogin(employee.username,employee.password)
+    if(ressu==false){
+        res.send(error_handling("mpompa"))
+    }else{
+        ressu= JSON.parse(JSON.stringify(ressu[0]));
+        const token = jwt.sign({user: ressu.id},TOKEN_KEY,{
+                        expiresIn: '15s' 
+                        });
+        res.header("auth-token",token).send(token);
+        //console.log(ressu)
+
+    }
+});
+
+
+app.get("/login/get",verify, (req,res) => {
+    res.send(success_handling("joirjgrgrg"))
+});
+
+app.get("/logout",verify, (req,res) => {
+    const token = req.header("auth-token")
+    console.log(token)
+    // get the decoded payload and header
+    //jwtBlacklist.blacklist(token);
+    res.send(success_handling("joirjgrgrg"))
+});
+
+
+
 
 ///Empolyees
 app.post("/employee",async (req,res) => {
@@ -145,6 +216,23 @@ function GetEmployeeById(employee_id){
     });
 }
 
+function CheckLogin(username,password){
+    console.log(username,password)
+    return new Promise((resolve,reject)=>{
+        sql = "select * from employees where username=? and password =?";
+        
+        connDB.query(sql,[username,password],(err, result) => {
+            if (err){
+                console.log("CheckLogin");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 
 
@@ -549,6 +637,37 @@ function UpdateRoom(room){
         })
     });
 }
+
+//cookies
+
+function RegisterCookie(cookie){
+    return new Promise((resolve,reject)=>{
+        sql = "insert into cookies values(?)"
+        connDB.query(sql,[cookie],(err, result) => {
+           // console.log(result.affectedRows);
+            if (err){
+                console.log("RegisterCookie");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 function handle_mysql_disconnect(_connDB){ 
 _connDB.on('error', function(error){
