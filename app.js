@@ -4,13 +4,11 @@ const bodyParser = require('body-parser')
 let error_handling = require('./Status/error_handling');
 let success_handling = require('./Status/success_handling');
 var cors = require('cors');
-const TOKEN_KEY ="UOM";
 const verify = require('./verifyToken');
 const jwt = require('jsonwebtoken');
-//const jwtBlacklist = require('jwt-blacklist')(jwt);
+require('dotenv').config()
 
 //CreateConection
-
 var connDB =
  mysql.createConnection({
     host: 'localhost',
@@ -110,8 +108,45 @@ function AddToken(token){
     });
 }
 
+function DeleteToken(token){
+    return new Promise((resolve,reject)=>{
+        sql = "delete from refress_tokens where token = ?";
+        connDB.query(sql,[token],(err, result) => {
+            if (err){
+                console.log("DeleteToken");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
 
+
+app.post("/token",async (req,res) => {
+    const refress_token = req.body.refress_token
+    var refress_token1 = refress_token
+   // console.log("1")
+    if(refress_token == null) return res.sendStatus(401)
+    //console.log("2")
+    rf = await CheckToken(refress_token)
+    if(!rf) return res.sendStatus(403)
+    //console.log("3",rf)
+    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY , async (err,user)=>{
+       // console.log(user,err)
+        if(err) return res.sendStatus(403) 
+        await DeleteToken(refress_token1);
+        const access_token = generateAccessToken({user: user})
+        const refress_token = jwt.sign({user: user},process.env.REFRESH_TOKEN_KEY);
+        await AddToken(refress_token);
+        res.send({"access_token": access_token ,"refress_token": refress_token});
+    });
+});
 //login
+
+
 
 ///
 app.post("/login/employee",async (req,res) => {
@@ -122,22 +157,30 @@ app.post("/login/employee",async (req,res) => {
         res.send(error_handling("mpompa"))
     }else{
         ressu= JSON.parse(JSON.stringify(ressu[0]));
-        const token = jwt.sign({user: ressu.id},TOKEN_KEY,{
-                        expiresIn: '15s' 
-                        });
-        res.header("auth-token",token).send(token);
+        ressu = (({ id, first_name ,last_name }) => ({ id, first_name ,last_name }))(ressu);
+        const employee1 = {user: ressu};
+        const access_token = generateAccessToken(employee1)
+        const refress_token = jwt.sign(employee1,process.env.REFRESH_TOKEN_KEY);
+        await AddToken(refress_token);
+        res.send({"access_token": access_token ,"refress_token": refress_token});
         //console.log(ressu)
 
     }
 });
 
+function generateAccessToken(employee){
+    return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY,{
+        expiresIn: '20s' 
+        });
+}
 
-app.get("/login/get",verify, (req,res) => {
+app.get("/auchCheck",verify, (req,res) => {
     res.send(success_handling("joirjgrgrg"))
 });
 
 app.get("/logout",verify, (req,res) => {
     const token = req.header("auth-token")
+    //await DeleteToken(refress_token);
     console.log(token)
     // get the decoded payload and header
     //jwtBlacklist.blacklist(token);
