@@ -125,23 +125,29 @@ function DeleteToken(token){
 }
 
 
+
+
 app.post("/token",async (req,res) => {
+   
     const refress_token = req.body.refress_token
+    //console.log("bode",req.body.refress_token)
     var refress_token1 = refress_token
-   // console.log("1")
+    //console.log("1")
     if(refress_token == null) return res.sendStatus(401)
     //console.log("2")
     rf = await CheckToken(refress_token)
     if(!rf) return res.sendStatus(403)
     //console.log("3",rf)
     jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY , async (err,user)=>{
-       // console.log(user,err)
+        //console.log(user.user,err)
         if(err) return res.sendStatus(403) 
         await DeleteToken(refress_token1);
-        const access_token = generateAccessToken({user: user})
-        const refress_token = jwt.sign({user: user},process.env.REFRESH_TOKEN_KEY);
+        const access_token = generateAccessToken({user :user.user})
+        const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY);
         await AddToken(refress_token);
+        const obj = {"access_token": access_token ,"refress_token": refress_token}
         res.send({"access_token": access_token ,"refress_token": refress_token});
+        //console.log(obj)
     });
 });
 //login
@@ -150,10 +156,11 @@ app.post("/token",async (req,res) => {
 
 ///
 app.post("/login/employee",async (req,res) => {
-    const employee =req.body ;
-    console.log(employee)
-    ressu = await CheckLogin(employee.username,employee.password)
-    if(ressu==false){
+
+    const employee =req.body.data ;
+    console.log("employee",employee)
+    ressu = await CheckLogin(employee.user_name,employee.password)
+    if(ressu == false){
         res.send(error_handling("mpompa"))
     }else{
         ressu= JSON.parse(JSON.stringify(ressu[0]));
@@ -164,24 +171,28 @@ app.post("/login/employee",async (req,res) => {
         await AddToken(refress_token);
         res.send({"access_token": access_token ,"refress_token": refress_token});
         //console.log(ressu)
-
     }
 });
 
 function generateAccessToken(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY,{
-        expiresIn: '20s' 
+        expiresIn: '10s' 
         });
 }
 
-app.get("/auchCheck",verify, (req,res) => {
+
+
+
+
+app.get("/authCheck",verify, (req,res) => {
+    console.log("auchCheck\n")
     res.send(success_handling("joirjgrgrg"))
 });
 
 app.get("/logout",verify, (req,res) => {
     const token = req.header("auth-token")
     //await DeleteToken(refress_token);
-    console.log(token)
+   // console.log(token)
     // get the decoded payload and header
     //jwtBlacklist.blacklist(token);
     res.send(success_handling("joirjgrgrg"))
