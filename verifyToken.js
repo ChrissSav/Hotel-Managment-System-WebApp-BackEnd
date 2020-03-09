@@ -8,8 +8,9 @@ module.exports = function(req,res,next){
     const token = req.header("auth-token");
     console.log("Verify auth-token\n",token,"\n\n");
     if(!token){ 
-        res.send(error_handling("Token Invalid"))
+        //res.send(error_handling("Token Invalid"))
         console.log("errrroorrr1")
+        return res.status(401).send("Access Denied")
     };
     try{
         const verifed = jwt.verify(token,process.env.ACCESS_TOKEN_KEY)
@@ -17,8 +18,9 @@ module.exports = function(req,res,next){
         next();
     }catch(err){
         console.log("errrroorrr2");
-        res.send(error_handling("Token Invalid"));
+        res.send(400).send("Invalid Token")
     }
 };
+
 
 

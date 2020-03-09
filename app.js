@@ -176,7 +176,7 @@ app.post("/login/employee",async (req,res) => {
 
 function generateAccessToken(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY,{
-        expiresIn: '10s' 
+        expiresIn: '5s' 
         });
 }
 
