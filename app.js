@@ -176,7 +176,7 @@ app.post("/login/employee",async (req,res) => {
 
 function generateAccessToken(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY,{
-        expiresIn: '5s' 
+        expiresIn: '15s' 
         });
 }
 
@@ -185,7 +185,7 @@ function generateAccessToken(employee){
 
 
 app.get("/authCheck",verify, (req,res) => {
-    console.log("auchCheck\n")
+    //console.log("auchCheck\n")
     res.send(success_handling("joirjgrgrg"))
 });
 
@@ -236,7 +236,7 @@ app.delete("/employee", (req,res) => {
 
 
 
-app.get("/employee/:id",async (req,res) => {
+app.get("/employee/:id", async (req,res) => {
     employee_id = req.params.id;
   //  console.log("employee_id",employee_id)
     if (employee_id =="!" || employee_id ==="!"){
@@ -353,7 +353,7 @@ function UpdateEmployee(employee){
 }
 
 ///Costumers
-app.post("/costumer", async (req,res) => {
+app.post("/costumer",verify, async (req,res) => {
     costumer  =req.body.data ;
     //console.log(costumer)
     if(await RegisterCostumer(costumer)==true){
@@ -373,9 +373,9 @@ app.delete("/costumer", (req,res) => {
 });
 
 
-app.get("/costumer/:id",async (req,res) => {
+app.get("/costumer/:id",verify, async (req,res) => {
     costumer_id = req.params.id;
-   // console.log("costumer_id",costumer_id)
+    //console.log(req.headers.authorization)
     if (costumer_id =="!"){
         result = await GetAllFromTable("costumers");
     }else{
@@ -448,7 +448,7 @@ function GetCostumerById(costumer_id){
 }
 
 ///Reservation
-app.post("/reservation", async (req,res) => {
+app.post("/reservation",verify, async (req,res) => {
     reservation  =req.body.data ;
     //console.log(costumer)
     if(await RegisterReservaton(reservation)==true){
@@ -502,7 +502,7 @@ function RegisterReservaton(reservation){
 
 
 //Prices
-app.put("/prices", (req,res) => {
+app.put("/prices",verify, (req,res) => {
     updated_prices = req.body.prices
     if(UpdatePrices(updated_prices)==true){
         res.send(success_handling(""));
@@ -512,7 +512,7 @@ app.put("/prices", (req,res) => {
     
 });
 
-app.get("/prices",async (req,res) => {
+app.get("/prices",verify, async (req,res) => {
     result = await GetAllFromTable("prices")
     if(result==false){
         res.send(error_handling("error"))
@@ -554,7 +554,7 @@ function UpdatePrices(prices){
     });
 }
 //Rooms
-app.post("/room", async (req,res) => {
+app.post("/room", verify,async (req,res) => {
     create_room = req.body.room
     console.log("Καταχωρηση δωματιου")
     console.log(create_room)
@@ -565,7 +565,7 @@ app.post("/room", async (req,res) => {
     }
 });
 
-app.put("/room",async (req,res) => {
+app.put("/room",verify,async (req,res) => {
     current_room = req.body.room
     console.log("Επεξεργασια δωματιου")
    // console.log(current_room)
@@ -581,7 +581,7 @@ app.delete("/room", (req,res) => {
 });
 
 
-app.get("/room/:id", async (req,res) => {
+app.get("/room/:id", verify,async (req,res) => {
     room_id = req.params.id;
     //console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
@@ -597,7 +597,7 @@ app.get("/room/:id", async (req,res) => {
 
 
 
-app.get("/rooms", async (req,res) => {
+app.get("/rooms", verify, async (req,res) => {
     rooms = await GetAllFromTable("rooms");
     if (rooms==false){
         res.send("error");
@@ -606,7 +606,7 @@ app.get("/rooms", async (req,res) => {
     }
 });
 
-app.get("/room_max_id", async (req,res) => {
+app.get("/room_max_id",verify,  async (req,res) => {
     max = await GetRoomMaxId();
     res.send(success_handling(max+1));
 
