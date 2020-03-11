@@ -4,7 +4,8 @@ const bodyParser = require('body-parser')
 let error_handling = require('./Status/error_handling');
 let success_handling = require('./Status/success_handling');
 var cors = require('cors');
-const verify = require('./verifyToken');
+const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
+const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -138,12 +139,12 @@ app.post("/token",async (req,res) => {
     rf = await CheckToken(refress_token)
     if(!rf) return res.sendStatus(403)
     //console.log("3",rf)
-    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY , async (err,user)=>{
+    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_RECEPTION , async (err,user)=>{
         //console.log(user.user,err)
         if(err) return res.sendStatus(403) 
         await DeleteToken(refress_token1);
-        const access_token = generateAccessToken({user :user.user})
-        const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY);
+        const access_token = generateAccessTokenforReception({user :user.user})
+        const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY_RECEPTION);
         await AddToken(refress_token);
         const obj = {"access_token": access_token ,"refress_token": refress_token}
         res.send({"access_token": access_token ,"refress_token": refress_token});
@@ -166,16 +167,16 @@ app.post("/login/employee",async (req,res) => {
         ressu= JSON.parse(JSON.stringify(ressu[0]));
         ressu = (({ id, first_name ,last_name }) => ({ id, first_name ,last_name }))(ressu);
         const employee1 = {user: ressu};
-        const access_token = generateAccessToken(employee1)
-        const refress_token = jwt.sign(employee1,process.env.REFRESH_TOKEN_KEY);
+        const access_token = generateAccessTokenforReception(employee1)
+        const refress_token = jwt.sign(employee1,process.env.REFRESH_TOKEN_KEY_RECEPTION);
         await AddToken(refress_token);
         res.send({"access_token": access_token ,"refress_token": refress_token});
         //console.log(ressu)
     }
 });
 
-function generateAccessToken(employee){
-    return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY,{
+function generateAccessTokenforReception(employee){
+    return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_RECEPTION,{
         expiresIn: '15s' 
         });
 }
@@ -184,12 +185,12 @@ function generateAccessToken(employee){
 
 
 
-app.get("/authCheck",verify, (req,res) => {
+app.get("/authCheck",verify_Token_reception, (req,res) => {
     //console.log("auchCheck\n")
     res.send(success_handling("joirjgrgrg"))
 });
 
-app.get("/logout",verify, (req,res) => {
+app.get("/logout",verify_Token_reception, (req,res) => {
     const token = req.header("auth-token")
     //await DeleteToken(refress_token);
    // console.log(token)
@@ -353,7 +354,7 @@ function UpdateEmployee(employee){
 }
 
 ///Costumers
-app.post("/costumer",verify, async (req,res) => {
+app.post("/costumer",verify_Token_reception, async (req,res) => {
     costumer  =req.body.data ;
     //console.log(costumer)
     if(await RegisterCostumer(costumer)==true){
@@ -373,7 +374,7 @@ app.delete("/costumer", (req,res) => {
 });
 
 
-app.get("/costumer/:id",verify, async (req,res) => {
+app.get("/costumer/:id",verify_Token_reception, async (req,res) => {
     costumer_id = req.params.id;
     //console.log(req.headers.authorization)
     if (costumer_id =="!"){
@@ -448,7 +449,7 @@ function GetCostumerById(costumer_id){
 }
 
 ///Reservation
-app.post("/reservation",verify, async (req,res) => {
+app.post("/reservation",verify_Token_reception, async (req,res) => {
     reservation  =req.body.data ;
     //console.log(costumer)
     if(await RegisterReservaton(reservation)==true){
@@ -502,7 +503,7 @@ function RegisterReservaton(reservation){
 
 
 //Prices
-app.put("/prices",verify, (req,res) => {
+app.put("/prices",verify_Token_reception, (req,res) => {
     updated_prices = req.body.prices
     if(UpdatePrices(updated_prices)==true){
         res.send(success_handling(""));
@@ -512,7 +513,7 @@ app.put("/prices",verify, (req,res) => {
     
 });
 
-app.get("/prices",verify, async (req,res) => {
+app.get("/prices",verify_Token_reception, async (req,res) => {
     result = await GetAllFromTable("prices")
     if(result==false){
         res.send(error_handling("error"))
@@ -554,7 +555,7 @@ function UpdatePrices(prices){
     });
 }
 //Rooms
-app.post("/room", verify,async (req,res) => {
+app.post("/room", verify_Token_reception,async (req,res) => {
     create_room = req.body.room
     console.log("Καταχωρηση δωματιου")
     console.log(create_room)
@@ -565,7 +566,7 @@ app.post("/room", verify,async (req,res) => {
     }
 });
 
-app.put("/room",verify,async (req,res) => {
+app.put("/room",verify_Token_reception,async (req,res) => {
     current_room = req.body.room
     console.log("Επεξεργασια δωματιου")
    // console.log(current_room)
@@ -581,7 +582,7 @@ app.delete("/room", (req,res) => {
 });
 
 
-app.get("/room/:id", verify,async (req,res) => {
+app.get("/room/:id", verify_Token_reception ,async (req,res) => {
     room_id = req.params.id;
     //console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
@@ -597,7 +598,7 @@ app.get("/room/:id", verify,async (req,res) => {
 
 
 
-app.get("/rooms", verify, async (req,res) => {
+app.get("/rooms", verify_Token_reception, async (req,res) => {
     rooms = await GetAllFromTable("rooms");
     if (rooms==false){
         res.send("error");
@@ -606,7 +607,7 @@ app.get("/rooms", verify, async (req,res) => {
     }
 });
 
-app.get("/room_max_id",verify,  async (req,res) => {
+app.get("/room_max_id",verify_Token_reception,  async (req,res) => {
     max = await GetRoomMaxId();
     res.send(success_handling(max+1));
 
