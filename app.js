@@ -159,7 +159,7 @@ app.post("/token",async (req,res) => {
 app.post("/login/employee",async (req,res) => {
 
     const employee =req.body.data ;
-    console.log("employee",employee)
+    //console.log("employeeconsole.log("employee",employee)
     ressu = await CheckLogin(employee.user_name,employee.password)
     if(ressu == false){
         res.send(error_handling("mpompa"))
@@ -177,7 +177,7 @@ app.post("/login/employee",async (req,res) => {
 
 function generateAccessTokenforReception(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_RECEPTION,{
-        expiresIn: '15s' 
+        expiresIn: '45s' 
         });
 }
 
@@ -356,7 +356,7 @@ function UpdateEmployee(employee){
 ///Costumers
 app.post("/costumer",verify_Token_reception, async (req,res) => {
     costumer  =req.body.data ;
-    //console.log(costumer)
+    
     if(await RegisterCostumer(costumer)==true){
         res.send(success_handling("mpompa"))
     }else{
@@ -376,13 +376,14 @@ app.delete("/costumer", (req,res) => {
 
 app.get("/costumer/:id",verify_Token_reception, async (req,res) => {
     costumer_id = req.params.id;
-    //console.log(req.headers.authorization)
+    //console.log(req.headers.auth_token)
+    result = [];
     if (costumer_id =="!"){
         result = await GetAllFromTable("costumers");
     }else{
         result = await GetCostumerById(costumer_id);
     }
-    res.send(result);
+    res.send(result)
     
 });
 
