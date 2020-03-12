@@ -76,13 +76,13 @@ function ChangeFromat(date){
 
 
 //GlobalFunctons----End---------------------------
-//tokens
-function CheckToken(token){
+//Acount=====================================================================================================
+function CheckRefreshTokenReception(token){
     return new Promise((resolve,reject)=>{
-        sql = "SELECT * FROM refress_tokens where token = '"+token+"'";
+        sql = "SELECT * FROM refress_tokens_reception where token = '"+token+"'";
         connDB.query(sql,(err, result) => {
             if (err || result.legth<1){
-                console.log("CheckToken");
+                console.log("CheckRefreshTokenReception");
                 console.log(err);
                 resolve (false);
             }
@@ -93,12 +93,30 @@ function CheckToken(token){
     });
 }
 
-function AddToken(token){
+
+function CheckRefreshTokenAdmin(token){
     return new Promise((resolve,reject)=>{
-        sql = "insert into refress_tokens values(?)";
+        sql = "SELECT * FROM refress_tokens_admin where token = '"+token+"'";
+        connDB.query(sql,(err, result) => {
+            if (err || result.legth<1){
+                console.log("CheckRefreshTokenAdmin");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+
+function AddTokenReception(token){
+    return new Promise((resolve,reject)=>{
+        sql = "insert into refress_tokens_reception values(?)";
         connDB.query(sql,[token],(err, result) => {
             if (err){
-                console.log("AddToken");
+                console.log("AddTokenReception");
                 console.log(err);
                 resolve (false);
             }
@@ -109,12 +127,45 @@ function AddToken(token){
     });
 }
 
-function DeleteToken(token){
+
+
+function AddTokenAdmin(token){
     return new Promise((resolve,reject)=>{
-        sql = "delete from refress_tokens where token = ?";
+        sql = "insert into refress_tokens_admin values(?)";
         connDB.query(sql,[token],(err, result) => {
             if (err){
-                console.log("DeleteToken");
+                console.log("AddTokenAdmin");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+function DeleteTokenReception(token){
+    return new Promise((resolve,reject)=>{
+        sql = "delete from refress_tokens_reception where token = ?";
+        connDB.query(sql,[token],(err, result) => {
+            if (err){
+                console.log("DeleteTokenReception");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+function DeleteTokenAdmin(token){
+    return new Promise((resolve,reject)=>{
+        sql = "delete from refress_tokens_admin where token = ?";
+        connDB.query(sql,[token],(err, result) => {
+            if (err){
+                console.log("DeleteTokenAdmin");
                 console.log(err);
                 resolve (false);
             }
@@ -126,9 +177,7 @@ function DeleteToken(token){
 }
 
 
-
-
-app.post("/token",async (req,res) => {
+app.post("/token_reception",async (req,res) => {
    
     const refress_token = req.body.refress_token
     //console.log("bode",req.body.refress_token)
@@ -136,21 +185,49 @@ app.post("/token",async (req,res) => {
     //console.log("1")
     if(refress_token == null) return res.sendStatus(401)
     //console.log("2")
-    rf = await CheckToken(refress_token)
+    rf = await CheckRefreshTokenReception(refress_token)
     if(!rf) return res.sendStatus(403)
     //console.log("3",rf)
     jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_RECEPTION , async (err,user)=>{
         //console.log(user.user,err)
         if(err) return res.sendStatus(403) 
-        await DeleteToken(refress_token1);
+        await DeleteTokenReception(refress_token1);
         const access_token = generateAccessTokenforReception({user :user.user})
         const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY_RECEPTION);
-        await AddToken(refress_token);
-        const obj = {"access_token": access_token ,"refress_token": refress_token}
+        await AddTokenReception(refress_token);
+        //const obj = {"access_token": access_token ,"refress_token": refress_token}
         res.send({"access_token": access_token ,"refress_token": refress_token});
         //console.log(obj)
     });
 });
+
+
+
+app.post("/token_admin",async (req,res) => {
+   
+    const refress_token = req.body.refress_token
+    //console.log("bode",req.body.refress_token)
+    var refress_token1 = refress_token
+    //console.log("1")
+    if(refress_token == null) return res.sendStatus(401)
+    //console.log("2")
+    rf = await CheckRefreshTokenAdmin(refress_token)
+    if(!rf) return res.sendStatus(403)
+    //console.log("3",rf)
+    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_ADMIN , async (err,user)=>{
+        //console.log(user.user,err)
+        if(err) return res.sendStatus(403) 
+        await DeleteTokenAdmin(refress_token1);
+        const access_token = generateAccessTokenforAdmin({user :user.user})
+        const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY_ADMIN);
+        await AddTokenAdmin(refress_token);
+        //const obj = {"access_token": access_token ,"refress_token": refress_token}
+        res.send({"access_token": access_token ,"refress_token": refress_token});
+        //console.log(obj)
+    });
+});
+
+
 //login
 
 
@@ -169,18 +246,25 @@ app.post("/login/employee",async (req,res) => {
         const employee1 = {user: ressu};
         const access_token = generateAccessTokenforReception(employee1)
         const refress_token = jwt.sign(employee1,process.env.REFRESH_TOKEN_KEY_RECEPTION);
-        await AddToken(refress_token);
+        await AddTokenReception(refress_token);
         res.send({"access_token": access_token ,"refress_token": refress_token});
         //console.log(ressu)
     }
 });
 
+
+
 function generateAccessTokenforReception(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_RECEPTION,{
-        expiresIn: '45s' 
+        expiresIn: '7s' 
         });
 }
 
+function generateAccessTokenforAdmin(employee){
+    return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_ADMIN,{
+        expiresIn: '7s' 
+        });
+}
 
 
 
@@ -192,7 +276,7 @@ app.get("/authCheck",verify_Token_reception, (req,res) => {
 
 app.get("/logout",verify_Token_reception, (req,res) => {
     const token = req.header("auth-token")
-    //await DeleteToken(refress_token);
+    //await DeleteTokenReception(refress_token);
    // console.log(token)
     // get the decoded payload and header
     //jwtBlacklist.blacklist(token);
@@ -201,6 +285,7 @@ app.get("/logout",verify_Token_reception, (req,res) => {
 
 
 
+//EndAcount==================================================================================================
 
 ///Empolyees
 app.post("/employee",async (req,res) => {
