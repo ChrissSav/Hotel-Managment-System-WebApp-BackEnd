@@ -83,7 +83,7 @@ function CheckRefreshTokenReception(token){
     return new Promise((resolve,reject)=>{
         sql = "SELECT * FROM refress_tokens_reception where token = '"+token+"'";
         connDB.query(sql,(err, result) => {
-            if (err || result.legth<1){
+            if (err || result.length<1){
                 console.log("CheckRefreshTokenReception");
                 console.log(err);
                 resolve (false);
@@ -100,7 +100,7 @@ function CheckRefreshTokenAdmin(token){
     return new Promise((resolve,reject)=>{
         sql = "SELECT * FROM refress_tokens_admin where token = '"+token+"'";
         connDB.query(sql,(err, result) => {
-            if (err || result.legth<1){
+            if (err || result.length<1){
                 console.log("CheckRefreshTokenAdmin");
                 console.log(err);
                 resolve (false);
@@ -214,7 +214,9 @@ app.post("/token_admin", async (req,res) => {
     if(refress_token == null) return res.sendStatus(401)
     //console.log("2")
     rf = await CheckRefreshTokenAdmin(refress_token)
-    if(!rf) return res.sendStatus(403)
+    //console.log("rf",rf)
+    if(!rf)  return res.sendStatus(403)
+
     //console.log("3",rf)
     jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_ADMIN , async (err,user)=>{
         //console.log(user.user,err)
