@@ -6,6 +6,8 @@ let success_handling = require('./Status/success_handling');
 var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
+const verify_Token_general = require('./VerifyTokens/verify_Token_general');
+
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -177,7 +179,7 @@ function DeleteTokenAdmin(token){
 }
 
 
-app.post("/token_reception",async (req,res) => {
+app.post("/token_reception", async (req,res) => {
    
     const refress_token = req.body.refress_token
     //console.log("bode",req.body.refress_token)
@@ -203,7 +205,7 @@ app.post("/token_reception",async (req,res) => {
 
 
 
-app.post("/token_admin",async (req,res) => {
+app.post("/token_admin", async (req,res) => {
    
     const refress_token = req.body.refress_token
     //console.log("bode",req.body.refress_token)
@@ -230,7 +232,24 @@ app.post("/token_admin",async (req,res) => {
 
 //login
 
+app.post("/login/admin",async (req,res) => {
 
+    const employee = req.body.data ;
+    //console.log("employeeconsole.log("employee",employee)
+    ressu = await CheckAdmin(employee.user_name,employee.password)
+    if(ressu == false){
+        res.send(error_handling("mpompa"))
+    }else{
+        ressu= JSON.parse(JSON.stringify(ressu[0]));
+        ressu = (({ id, first_name ,last_name }) => ({ id, first_name ,last_name }))(ressu);
+        const employee1 = {user: ressu};
+        const access_token = generateAccessTokenforAdmin(employee1)
+        const refress_token = jwt.sign(employee1,process.env.REFRESH_TOKEN_KEY_ADMIN);
+        await AddTokenAdmin(refress_token);
+        res.send({"access_token": access_token ,"refress_token": refress_token});
+        //console.log(ressu)
+    }
+});
 
 ///
 app.post("/login/employee",async (req,res) => {
@@ -269,13 +288,13 @@ function generateAccessTokenforAdmin(employee){
 
 
 
-app.get("/authCheck",verify_Token_reception, (req,res) => {
+app.get("/authCheck",verify_Token_general, (req,res) => {
     //console.log("auchCheck\n")
-    res.send(success_handling("joirjgrgrg"))
+    //res.send(success_handling("joirjgrgrg"))
 });
 
 app.get("/logout",verify_Token_reception, (req,res) => {
-    const token = req.header("auth-token")
+    const token = req.header("auth_token")
     //await DeleteTokenReception(refress_token);
    // console.log(token)
     // get the decoded payload and header
@@ -288,7 +307,7 @@ app.get("/logout",verify_Token_reception, (req,res) => {
 //EndAcount==================================================================================================
 
 ///Empolyees
-app.post("/employee",async (req,res) => {
+app.post("/employee",verify_Token_admin, async (req,res) => {
     employee  =req.body.data ;
     console.log(employee)
     if(await RegisterEmpolyee(employee)==true){
@@ -300,7 +319,7 @@ app.post("/employee",async (req,res) => {
 });
 
 
-app.put("/employee",async (req,res) => {
+app.put("/employee",verify_Token_admin, async (req,res) => {
     //console.log(req.body.data)
     current_employee = req.body.data
     //console.log(current_employee.birthday,ChangeFromat(current_employee.birthday))
@@ -322,7 +341,7 @@ app.delete("/employee", (req,res) => {
 
 
 
-app.get("/employee/:id", async (req,res) => {
+app.get("/employee/:id",verify_Token_admin,  async (req,res) => {
     employee_id = req.params.id;
   //  console.log("employee_id",employee_id)
     if (employee_id =="!" || employee_id ==="!"){
@@ -357,7 +376,7 @@ function GetEmployeeById(employee_id){
 }
 
 function CheckLogin(username,password){
-    console.log(username,password)
+    //console.log(username,password)
     return new Promise((resolve,reject)=>{
         sql = "select * from employees where username=? and password =?";
         
@@ -374,7 +393,23 @@ function CheckLogin(username,password){
     });
 }
 
-
+function CheckAdmin(username,password){
+    //console.log(username,password)
+    return new Promise((resolve,reject)=>{
+        sql = "select * from administrators where username=? and password =?";
+        
+        connDB.query(sql,[username,password],(err, result) => {
+            if (err){
+                console.log("CheckAdmin");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 function RegisterEmpolyee(employee){
     return new Promise((resolve,reject)=>{
@@ -546,7 +581,7 @@ app.post("/reservation",verify_Token_reception, async (req,res) => {
     }
 });
 
-app.put("/reservation", (req,res) => {
+app.put("/reservation",  (req,res) => {
     res.send("Επεξεργασια κρατησης");
 });
 
@@ -589,7 +624,7 @@ function RegisterReservaton(reservation){
 
 
 //Prices
-app.put("/prices",verify_Token_reception, (req,res) => {
+app.put("/prices",verify_Token_admin, (req,res) => {
     updated_prices = req.body.prices
     if(UpdatePrices(updated_prices)==true){
         res.send(success_handling(""));
@@ -599,7 +634,7 @@ app.put("/prices",verify_Token_reception, (req,res) => {
     
 });
 
-app.get("/prices",verify_Token_reception, async (req,res) => {
+app.get("/prices",verify_Token_admin, async (req,res) => {
     result = await GetAllFromTable("prices")
     if(result==false){
         res.send(error_handling("error"))
@@ -641,7 +676,7 @@ function UpdatePrices(prices){
     });
 }
 //Rooms
-app.post("/room", verify_Token_reception,async (req,res) => {
+app.post("/room", verify_Token_admin,async (req,res) => {
     create_room = req.body.room
     console.log("Καταχωρηση δωματιου")
     console.log(create_room)
@@ -652,7 +687,7 @@ app.post("/room", verify_Token_reception,async (req,res) => {
     }
 });
 
-app.put("/room",verify_Token_reception,async (req,res) => {
+app.put("/room",verify_Token_admin,async (req,res) => {
     current_room = req.body.room
     console.log("Επεξεργασια δωματιου")
    // console.log(current_room)
@@ -668,7 +703,7 @@ app.delete("/room", (req,res) => {
 });
 
 
-app.get("/room/:id", verify_Token_reception ,async (req,res) => {
+app.get("/room/:id", verify_Token_admin ,async (req,res) => {
     room_id = req.params.id;
     //console.log("room_id",room_id)
     if (room_id ==0 || room_id =="0"){
@@ -684,7 +719,7 @@ app.get("/room/:id", verify_Token_reception ,async (req,res) => {
 
 
 
-app.get("/rooms", verify_Token_reception, async (req,res) => {
+app.get("/rooms", verify_Token_admin, async (req,res) => {
     rooms = await GetAllFromTable("rooms");
     if (rooms==false){
         res.send("error");
@@ -693,7 +728,7 @@ app.get("/rooms", verify_Token_reception, async (req,res) => {
     }
 });
 
-app.get("/room_max_id",verify_Token_reception,  async (req,res) => {
+app.get("/room_max_id",verify_Token_admin,  async (req,res) => {
     max = await GetRoomMaxId();
     res.send(success_handling(max+1));
 
