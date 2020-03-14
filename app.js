@@ -231,7 +231,26 @@ app.post("/token_admin", async (req,res) => {
     });
 });
 
+app.delete("/token_reception", verify_Token_reception, async (req,res) => {
+    const refress_token = req.body.refress_token
+    result = await DeleteTokenReception(refress_token)
+    if(result){
+        res.send(success_handling("success"))
+    }else{
+        res.send(error_handling("success"))
+    }
+});
 
+app.delete("/token_admin",verify_Token_admin, async (req,res) => {
+   
+    const refress_token = req.body.refress_token
+    result = await DeleteTokenAdmin(refress_token)
+    if(result){
+        res.send(success_handling("success"))
+    }else{
+        res.send(error_handling("success"))
+    }
+});
 //login
 
 app.post("/login/admin",async (req,res) => {
@@ -294,16 +313,6 @@ app.get("/authCheck",verify_Token_general, (req,res) => {
     //console.log("auchCheck\n")
     //res.send(success_handling("joirjgrgrg"))
 });
-
-app.get("/logout",verify_Token_reception, (req,res) => {
-    const token = req.header("auth_token")
-    //await DeleteTokenReception(refress_token);
-   // console.log(token)
-    // get the decoded payload and header
-    //jwtBlacklist.blacklist(token);
-    res.send(success_handling("joirjgrgrg"))
-});
-
 
 
 //EndAcount==================================================================================================
