@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-
+const token_expire = '2s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -231,7 +231,7 @@ app.post("/token_admin", async (req,res) => {
     });
 });
 
-app.delete("/token_reception", verify_Token_reception, async (req,res) => {
+app.delete("/token_reception", async (req,res) => {
     const refress_token = req.body.refress_token
     result = await DeleteTokenReception(refress_token)
     if(result){
@@ -241,8 +241,8 @@ app.delete("/token_reception", verify_Token_reception, async (req,res) => {
     }
 });
 
-app.delete("/token_admin",verify_Token_admin, async (req,res) => {
-   
+app.delete("/token_admin", async (req,res) => {
+    //console.log("token_admin")
     const refress_token = req.body.refress_token
     result = await DeleteTokenAdmin(refress_token)
     if(result){
@@ -296,13 +296,13 @@ app.post("/login/employee",async (req,res) => {
 
 function generateAccessTokenforReception(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_RECEPTION,{
-        expiresIn: '7s' 
+        expiresIn: token_expire 
         });
 }
 
 function generateAccessTokenforAdmin(employee){
     return jwt.sign(employee,process.env.ACCESS_TOKEN_KEY_ADMIN,{
-        expiresIn: '7s' 
+        expiresIn: token_expire 
         });
 }
 
