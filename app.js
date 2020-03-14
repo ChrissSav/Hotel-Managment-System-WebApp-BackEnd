@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '2s'
+const token_expire = '22s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -496,11 +496,21 @@ app.post("/costumer",verify_Token_reception, async (req,res) => {
     }
 });
 
-app.put("/costumer", (req,res) => {
-    res.send("Επεξεργασια πελάτη");
+app.put("/costumer",verify_Token_reception, async (req,res) => {
+    //console.log(req.body.data)
+    current_costumer = req.body.data
+    //console.log(current_employee.birthday,ChangeFromat(current_employee.birthday))
+
+    //console.log("Επεξεργασια employee")
+   // console.log(current_room)
+    if(await UpdateCostumer(current_costumer)){
+          res.send(success_handling(""));
+    }else{
+         res.send(error_handling(""));
+    }
 });
 
-app.delete("/costumer", (req,res) => {
+app.delete("/costumer",verify_Token_reception, (req,res) => {
     res.send("Διαγραφη πελάτη");
 });
 
@@ -579,6 +589,40 @@ function GetCostumerById(costumer_id){
         })
     });
 }
+
+function UpdateCostumer(employee){
+    return new Promise((resolve,reject)=>{
+        id = employee.id;
+        first_name=  employee.first_name;
+        last_name=  employee.last_name;
+        birthday =  ChangeFromat(employee.birthday);
+        sex =  employee.sex;
+        phone=  employee.phone;
+        adt=  employee.adt;
+        sql = "UPDATE  costumers set first_name = ?, last_name = ?, birthday = ?, sex = ?,phone = ?"+
+        ",adt =? where id = ?"
+        connDB.query(sql,[first_name , last_name , birthday , sex ,phone, adt ,id],(err, result) => {
+           // console.log(result.affectedRows);
+            if (err || result.affectedRows == 0){
+                console.log("UpdateCostumer");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+
+
+
+
+
+
+
+
 
 ///Reservation
 app.post("/reservation",verify_Token_reception, async (req,res) => {
