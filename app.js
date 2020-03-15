@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '22s'
+const token_expire = '25s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -148,9 +148,14 @@ function AddTokenAdmin(token){
 }
 function DeleteTokenReception(token){
     return new Promise((resolve,reject)=>{
+        const token1 = token
         sql = "delete from refress_tokens_reception where token = ?";
         connDB.query(sql,[token],(err, result) => {
-            if (err){
+            //console.log("result",result)
+            //console.log("token",token1)
+            //console.log("fwfwfwf\n");
+
+            if (err || result.affectedRows<1){
                 console.log("DeleteTokenReception");
                 console.log(err);
                 resolve (false);
@@ -166,9 +171,10 @@ function DeleteTokenAdmin(token){
     return new Promise((resolve,reject)=>{
         sql = "delete from refress_tokens_admin where token = ?";
         connDB.query(sql,[token],(err, result) => {
-            if (err){
-                console.log("DeleteTokenAdmin");
-                console.log(err);
+           // console.log("DeleteTokenAdmin",result);
+            if (err || result.affectedRows<1){
+                console.log("DeleteTokenAdmin","error");
+                //console.log(err);
                 resolve (false);
             }
             else{
@@ -208,7 +214,7 @@ app.post("/token_reception", async (req,res) => {
 app.post("/token_admin", async (req,res) => {
    
     const refress_token = req.body.refress_token
-    //console.log("bode",req.body.refress_token)
+    //console.log("body",req.body.refress_token)
     var refress_token1 = refress_token
     //console.log("1")
     if(refress_token == null) return res.sendStatus(401)
@@ -233,6 +239,7 @@ app.post("/token_admin", async (req,res) => {
 
 app.delete("/token_reception", async (req,res) => {
     const refress_token = req.body.refress_token
+    //console.log("refress_token",req.body.refress_token)
     result = await DeleteTokenReception(refress_token)
     if(result){
         res.send(success_handling("success"))
@@ -242,8 +249,9 @@ app.delete("/token_reception", async (req,res) => {
 });
 
 app.delete("/token_admin", async (req,res) => {
-    //console.log("token_admin")
     const refress_token = req.body.refress_token
+    console.log("refress_token",refress_token)
+    
     result = await DeleteTokenAdmin(refress_token)
     if(result){
         res.send(success_handling("success"))
