@@ -518,8 +518,15 @@ app.put("/costumer",verify_Token_reception, async (req,res) => {
     }
 });
 
-app.delete("/costumer",verify_Token_reception, (req,res) => {
-    res.send("Διαγραφη πελάτη");
+app.delete("/costumer",verify_Token_reception,async (req,res) => {
+    costumer = req.body;
+    //console.log("Διαγραφη πελάτη",costumer);
+    const result = await DeleteCostumer(costumer);
+    if(result){
+        res.send(success_handling("success delete costumer"))
+    }else{
+        res.send(error_handling("error in delete costumer"))
+    }
 });
 
 
@@ -623,6 +630,24 @@ function UpdateCostumer(employee){
     });
 }
 
+
+function DeleteCostumer(costumer){
+    return new Promise((resolve,reject)=>{
+        id = costumer.id;
+        sql = "delete from costumers where id = ?"
+        connDB.query(sql,[id],(err, result) => {
+           // console.log(result);
+            if (err || result.affectedRows<1){
+                console.log("DeleteCostumer");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
 
 
 
