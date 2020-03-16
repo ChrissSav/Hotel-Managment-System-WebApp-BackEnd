@@ -16,12 +16,13 @@ module.exports = function (req,res,next){
         req.user = verifed
         next();
     }catch(err){
-        //console.log("Invalid Token");
+        console.log("Invalid Token",token);
         //res.send(400).send("Invalid Token")
         return res.status(400).send("Invalid Token")
         //res.sendStatus(400)
     }
 };
+
 
 
 

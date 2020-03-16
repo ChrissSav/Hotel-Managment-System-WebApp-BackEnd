@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '5s'
+const token_expire = '15s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -20,6 +20,7 @@ var connDB =
     database: 'hotel_database',
     insecureAuth : true
 });
+
 
 //Connection
 connDB.connect((error) => {
@@ -146,12 +147,12 @@ function AddTokenAdmin(token){
         })
     });
 }
+
 function DeleteTokenReception(token){
     return new Promise((resolve,reject)=>{
-        const token1 = token
         sql = "delete from refress_tokens_reception where token = ?";
         connDB.query(sql,[token],(err, result) => {
-            //console.log("result",result)
+            //console.log("result",result.affectedRows)
             //console.log("token",token1)
             //console.log("fwfwfwf\n");
 
@@ -192,8 +193,9 @@ app.post("/token_reception", async (req,res) => {
     var refress_token1 = refress_token
     //console.log("1")
     if(refress_token == null) return res.sendStatus(401)
-    //console.log("2")
+    
     rf = await CheckRefreshTokenReception(refress_token)
+    //console.log("2",rf)
     if(!rf) return res.sendStatus(403)
     //console.log("3",rf)
     jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_RECEPTION , async (err,user)=>{
