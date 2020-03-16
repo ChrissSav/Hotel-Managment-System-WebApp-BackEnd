@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '25s'
+const token_expire = '5s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -250,7 +250,7 @@ app.delete("/token_reception", async (req,res) => {
 
 app.delete("/token_admin", async (req,res) => {
     const refress_token = req.body.refress_token
-    console.log("refress_token",refress_token)
+    //console.log("refress_token",refress_token)
     
     result = await DeleteTokenAdmin(refress_token)
     if(result){
@@ -352,8 +352,16 @@ app.put("/employee",verify_Token_admin, async (req,res) => {
     }
 });
 
-app.delete("/employee", (req,res) => {
-    res.send("Διαγραφη χρηστη");
+app.delete("/employee", verify_Token_admin, async(req,res) => {
+    //console.log(req.body)
+    employee = req.body;
+    //console.log("Διαγραφη πελάτη",costumer);
+    const result = await DeleteEmployee(employee);
+    if(result){
+        res.send(success_handling("success delete costumer"))
+    }else{
+        res.send(error_handling("error in delete costumer"))
+    }
 });
 
 
@@ -492,6 +500,25 @@ function UpdateEmployee(employee){
     });
 }
 
+function DeleteEmployee(employee){
+    return new Promise((resolve,reject)=>{
+        id = employee.id;
+        sql = "delete from employees where id = ?"
+        connDB.query(sql,[id+25],(err, result) => {
+           // console.log(result);
+            if (err || result.affectedRows<1){
+                console.log("DeleteEmployee");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (true);
+            }
+        })
+    });
+}
+
+
 ///Costumers
 app.post("/costumer",verify_Token_reception, async (req,res) => {
     costumer  =req.body.data ;
@@ -605,15 +632,15 @@ function GetCostumerById(costumer_id){
     });
 }
 
-function UpdateCostumer(employee){
+function UpdateCostumer(costumer){
     return new Promise((resolve,reject)=>{
-        id = employee.id;
-        first_name=  employee.first_name;
-        last_name=  employee.last_name;
-        birthday =  ChangeFromat(employee.birthday);
-        sex =  employee.sex;
-        phone=  employee.phone;
-        adt=  employee.adt;
+        id = costumer.id;
+        first_name=  costumer.first_name;
+        last_name=  costumer.last_name;
+        birthday =  ChangeFromat(costumer.birthday);
+        sex =  costumer.sex;
+        phone=  costumer.phone;
+        adt=  costumer.adt;
         sql = "UPDATE  costumers set first_name = ?, last_name = ?, birthday = ?, sex = ?,phone = ?"+
         ",adt =? where id = ?"
         connDB.query(sql,[first_name , last_name , birthday , sex ,phone, adt ,id],(err, result) => {
