@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '15s'
+const token_expire = '222s'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -20,6 +20,7 @@ var connDB =
     database: 'hotel_database',
     insecureAuth : true
 });
+
 
 
 //Connection
@@ -102,8 +103,8 @@ function CheckRefreshTokenAdmin(token){
         sql = "SELECT * FROM refress_tokens_admin where token = '"+token+"'";
         connDB.query(sql,(err, result) => {
             if (err || result.length<1){
-                console.log("CheckRefreshTokenAdmin");
-                console.log(err);
+                console.log("CheckRefreshTokenAdmin",err);
+                //console.log(err);
                 resolve (false);
             }
             else{
@@ -168,19 +169,24 @@ function DeleteTokenReception(token){
     });
 }
 
+
+
 function DeleteTokenAdmin(token){
     return new Promise((resolve,reject)=>{
-        sql = "delete from refress_tokens_admin where token = ?";
-        connDB.query(sql,[token],(err, result) => {
-           // console.log("DeleteTokenAdmin",result);
+        sql = "delete from refress_tokens_admin where token = '"+token+"'";
+        connDB.query(sql,(err, result) => {
+            
             if (err || result.affectedRows<1){
-                console.log("DeleteTokenAdmin","error");
+                
+                console.log("DeleteTokenAdmin","error",token);
+                console.log(sql);
                 //console.log(err);
                 resolve (false);
             }
             else{
                 resolve (true);
             }
+            console.log("\n");
         })
     });
 }
@@ -211,34 +217,6 @@ app.post("/token_reception", async (req,res) => {
     });
 });
 
-
-
-app.post("/token_admin", async (req,res) => {
-   
-    const refress_token = req.body.refress_token
-    //console.log("body",req.body.refress_token)
-    var refress_token1 = refress_token
-    //console.log("1")
-    if(refress_token == null) return res.sendStatus(401)
-    //console.log("2")
-    rf = await CheckRefreshTokenAdmin(refress_token)
-    //console.log("rf",rf)
-    if(!rf)  return res.sendStatus(403)
-
-    //console.log("3",rf)
-    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_ADMIN , async (err,user)=>{
-        //console.log(user.user,err)
-        if(err) return res.sendStatus(403) 
-        await DeleteTokenAdmin(refress_token1);
-        const access_token = generateAccessTokenforAdmin({user :user.user})
-        const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY_ADMIN);
-        await AddTokenAdmin(refress_token);
-        //const obj = {"access_token": access_token ,"refress_token": refress_token}
-        res.send({"access_token": access_token ,"refress_token": refress_token});
-        //console.log(obj)
-    });
-});
-
 app.delete("/token_reception", async (req,res) => {
     const refress_token = req.body.refress_token
     //console.log("refress_token",req.body.refress_token)
@@ -250,15 +228,46 @@ app.delete("/token_reception", async (req,res) => {
     }
 });
 
-app.delete("/token_admin", async (req,res) => {
+
+app.post("/token_admin", async (req,res) => {
+   
     const refress_token = req.body.refress_token
-    //console.log("refress_token",refress_token)
-    
+    //console.log("body",req.body.refress_token)
+    var refress_token1 = refress_token
+    //console.log("1")
+    if(refress_token == null) return res.sendStatus(401)
+    //console.log("2")
+    rf = await CheckRefreshTokenAdmin(refress_token)
+    console.log("token_admin ",refress_token,"\n")
+    if(!rf) { 
+        console.log("token_admin not found ")
+        return res.sendStatus(403)
+    }
+
+    //console.log("3",rf)
+    jwt.verify(refress_token,process.env.REFRESH_TOKEN_KEY_ADMIN , async (err,user)=>{
+        //console.log(user.user,err)
+        if(err) return res.sendStatus(403) 
+        console.log("refress_token1 ",refress_token1,"\n")
+        if(await DeleteTokenAdmin(refress_token1)){
+            const access_token = generateAccessTokenforAdmin({user :user.user})
+            const refress_token = jwt.sign({user :user.user},process.env.REFRESH_TOKEN_KEY_ADMIN);
+            await AddTokenAdmin(refress_token);
+            res.send({"access_token": access_token ,"refress_token": refress_token});
+        }else{
+            res.sendStatus(401)
+        }
+    });
+});
+
+
+app.delete("/token_admin", async (req,res) => {
+    const refress_token = req.body.refress_token    
     result = await DeleteTokenAdmin(refress_token)
     if(result){
         res.send(success_handling("success"))
     }else{
-        res.send(error_handling("success"))
+        res.send(error_handling("error"))
     }
 });
 //login
@@ -834,7 +843,38 @@ app.get("/room/:id", verify_Token_admin ,async (req,res) => {
    
 });
 
+app.get("/room/topick/:filter", verify_Token_reception ,async (req,res) => {
+    room_filter = req.params.filter;
+    //console.log("room_filter",room_filter)
+    result = await GetRoomsForReservation(room_filter);
+    //console.log("result",result)
+     if (result === false ){
+        res.send(error_handling("error"));
+     }else{
+        res.send(result);
+     }
+    //res.send(success_handling(""));
+    
+   
+});
 
+
+function GetRoomsForReservation(filter){
+    return new Promise((resolve,reject)=>{
+        sql = "select * from rooms where "+filter;
+        connDB.query(sql,[filter],(err, result) => {
+            //console.log(sql)
+            if (err){
+                console.log("GetRoomsForReservation");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 app.get("/rooms", verify_Token_admin, async (req,res) => {
     rooms = await GetAllFromTable("rooms");
