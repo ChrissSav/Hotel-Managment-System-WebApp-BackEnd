@@ -7,7 +7,7 @@ var cors = require('cors');
 const verify_Token_reception = require('./VerifyTokens/verify_Token_reception');
 const verify_Token_admin = require('./VerifyTokens/verify_Token_admin');
 const verify_Token_general = require('./VerifyTokens/verify_Token_general');
-const token_expire = '222s'
+const token_expire = '15m'
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
@@ -769,7 +769,32 @@ app.get("/prices",verify_Token_admin, async (req,res) => {
     }
 });
 
+app.get("/prices/reception",verify_Token_reception, async (req,res) => {
+    result = await getRecPrices()
+    if(result == false){
+        res.send(error_handling("error"))
+    }else{
+        res.send(success_handling(result[0]))
+    }
+});
 
+
+
+function getRecPrices(){
+    return new Promise((resolve,reject)=>{
+        sql = "select only_breakfast,half_board,full_diet,parking,tax from prices  ";
+        connDB.query(sql,(err, result) => {
+            if (err){
+                console.log("getRecPrices");
+                console.log(err);
+                resolve (false);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 function UpdatePrices(prices){
     return new Promise((resolve,reject)=>{
