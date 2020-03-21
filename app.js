@@ -692,19 +692,40 @@ function DeleteCostumer(costumer){
 
 
 
+    
 
 
 
-///Reservation
-app.post("/reservation",verify_Token_reception, async (req,res) => {
-    reservation  =req.body.data ;
-    //console.log(costumer)
-    if(await RegisterReservaton(reservation)==true){
+///Reservationverify_Token_reception
+app.post("/reservation", async (req,res) => {
+    reservation  = req.body ;
+   // console.log(reservation)
+    var result = Object.keys(reservation).map(key => ({ key, value: reservation[key] }));
+    //console.log(result);
+    let colums = ""
+    let colums_value = ""
+    let query = "INSERT INTO booking (";
+    for (let i = 0; i<result.length; i++){
+       // console.log(result[i].key+" = "+result[i].value);
+        colums += result[i].key + ", "        
+        if (typeof result[i].value === "string"){
+            colums_value += "'"+result[i].value + "', "
+        }else{
+            colums_value += result[i].value + ", "
+        }
+    }
+    colums = colums.substring(0, colums.length - 2);
+    colums_value = colums_value.substring(0, colums_value.length - 2);
+    query += colums +") VALUES ("+colums_value+");"
+    console.log(query);
+    if(await RegisterReservaton(query)){
         res.send(success_handling("mpompa"))
     }else{
         res.send(error_handling("error"));
 
     }
+    //res.send(reservation)
+
 });
 
 app.put("/reservation",  (req,res) => {
@@ -721,7 +742,7 @@ app.delete("/reservation", (req,res) => {
 function RegisterReservaton(reservation){
 
     return new Promise((resolve,reject)=>{
-        date = reservation.date;
+        /*date = reservation.date;
         rec_id = reservation.rec_id;
         costumer_id = reservation.costumer_id;
         room_id = reservation.room_id;
@@ -731,11 +752,12 @@ function RegisterReservaton(reservation){
         num_of_minors = reservation.num_of_minors;
         parking_space = reservation.parking_space;
         diet = reservation.diet;
-        cost = reservation.cost;
-        sql = "INSERT INTO costumers (date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,"+
+        cost = reservation.cost;*/
+        sql = "INSERT INTO booking (date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,"+
             "num_of_minors,parking_space,diet,cost) VALUES (?,?,?,?,?,?,?,?,?,?,?);"
-        connDB.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,
-            num_of_minors,parking_space,diet,cost],(err, result) => {
+        //connDB.query(sql,[date,rec_id,costumer_id,room_id,arrival,departure,num_of_abults,
+        //    num_of_minors,parking_space,diet,cost],(err, result) => {
+        connDB.query(reservation,(err, result) => {
             if (err){
                 console.log("RegisterCostumer");
                 console.log(err);
