@@ -689,24 +689,36 @@ function DeleteCostumer(costumer){
 
 
 
-
-
-
-    
-
-
-
 ///Reservationverify_Token_reception
+
+
+app.get("/reservation/:id", async (req,res) => {
+    res_id = req.params.id
+    if (res_id ==0 || res_id =="0"){
+        result = await GetAllFromTable("booking");
+    }else{
+        result = await GetRoomById(res_id);
+    }
+    res.send(result);
+});
+
+
+
+
+
+
 app.post("/reservation", async (req,res) => {
-    reservation  = req.body ;
-   // console.log(reservation)
+    reservation = req.body.data 
+    reservation.arrival = ChangeFromat(reservation.arrival);
+    reservation.departure = ChangeFromat(reservation.departure);
+    //console.log(reservation)
     var result = Object.keys(reservation).map(key => ({ key, value: reservation[key] }));
     //console.log(result);
     let colums = ""
     let colums_value = ""
     let query = "INSERT INTO booking (";
     for (let i = 0; i<result.length; i++){
-       // console.log(result[i].key+" = "+result[i].value);
+        //console.log(result[i].key+" = "+result[i].value);
         colums += result[i].key + ", "        
         if (typeof result[i].value === "string"){
             colums_value += "'"+result[i].value + "', "
@@ -717,14 +729,14 @@ app.post("/reservation", async (req,res) => {
     colums = colums.substring(0, colums.length - 2);
     colums_value = colums_value.substring(0, colums_value.length - 2);
     query += colums +") VALUES ("+colums_value+");"
-    console.log(query);
+    //console.log(query);
     if(await RegisterReservaton(query)){
         res.send(success_handling("mpompa"))
     }else{
         res.send(error_handling("error"));
 
     }
-    //res.send(reservation)
+    //res.send(reservation)*/
 
 });
 
