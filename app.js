@@ -697,7 +697,7 @@ app.get("/reservation/:id", async (req,res) => {
     if (res_id ==0 || res_id =="0"){
         result = await GetAllFromTable("booking");
     }else{
-        result = await GetRoomById(res_id);
+        result = await GetReservartionById(res_id);
     }
     res.send(result);
 });
@@ -705,7 +705,21 @@ app.get("/reservation/:id", async (req,res) => {
 
 
 
-
+function GetReservartionById(reser_id){
+    return new Promise((resolve,reject)=>{
+        sql = " select * from booking where costumer_id  like '%"+reser_id+"%' or id like '%"+reser_id+"'"
+        connDB.query(sql,(err, result) => {
+            if (err){
+                console.log("GetCostumerById");
+                console.log(err);
+                resolve ([]);
+            }
+            else{
+                resolve (result);
+            }
+        })
+    });
+}
 
 app.post("/reservation", async (req,res) => {
     reservation = req.body.data 
